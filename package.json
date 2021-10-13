@@ -1,6 +1,7 @@
 {
-  "name": "mesto-backend",
+  "name": "express-mesto",
   "version": "1.0.0",
+  "author": "Karepanova",
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
