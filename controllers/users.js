@@ -1,4 +1,6 @@
 const User = require('../models/user');
+const bcrypt = require('bcryptjs'); // импортируем bcrypt
+const jwt = require('jsonwebtoken'); // импортируем модуль jsonwebtoken
 
 // получить всех пользователей
 const getUsers = (req, res) => {
@@ -28,9 +30,10 @@ const getUser = (req, res) => {
 // создание пользователя
 const createUser = (req, res) => {
   // получим из объекта запроса имя и описание пользователя
-  const { name, about, avatar } = req.body;
+  const { name, about, avatar, email, password } = req.body;
 
-  User.create({ name, about, avatar }) // создадим документ на основе пришедших данных
+  bcrypt.hash(password, 10)
+    .then((hash) => User.create({ name, about, avatar, email, hash }))
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -84,10 +87,42 @@ const updateAvatar = (req, res) => {
     });
 };
 
+// получить логин - почту и пароль и проверяет их
+const login = (req, res) => {
+  const { email, password } = req.body;
+
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      // создадим токен
+      const token = jwt.sign(
+        { _id: user._id },
+        'someSecretKey-0000',
+        { expiresIn: '7d' } // токен будет просрочен через неделю после создания);
+      )
+      res
+        .cookie('jwt', token, {
+          // token - наш JWT токен, который мы отправляем
+          maxAge: 3600000 * 24 * 7,
+          httpOnly: true
+        })
+        .end(); // если у ответа нет тела, можно использовать метод end
+
+      // вернём токен
+      res.send({ token });
+    })
+    .catch((err) => {
+      // ошибка аутентификации
+      res
+        .status(401)
+        .send({ message: err.message });
+    });
+};
+
 module.exports = {
   getUsers,
   getUser,
   createUser,
   updateUser,
   updateAvatar,
+  login,
 };

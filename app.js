@@ -1,6 +1,10 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const {
+  createUser,
+  login,
+} = require('../controllers/users');
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -26,6 +30,10 @@ app.use('/users', require('./routes/users'));
 
 app.use('/cards', require('./routes/cards'));
 
+app.post('/signin', login);
+
+app.post('/signup', createUser);
+
 app.use((req, res) => res.status(404).send({ message: 'Ресурс не найден' }));
 
 app.listen(PORT, () => {
@@ -33,3 +41,4 @@ app.listen(PORT, () => {
   /* eslint no-console: "off" */
   console.log(`App listening on port ${PORT}`);
 });
+
