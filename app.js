@@ -4,7 +4,13 @@ const bodyParser = require('body-parser');
 const {
   createUser,
   login,
-} = require('../controllers/users');
+} = require('./controllers/users');
+const {
+  validateCreateUser,
+  validateLogin,
+} = require('./middlewares/validations');
+const auth = require('./middlewares/auth');
+const errors = require('./middlewares/errors');
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -18,27 +24,22 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
   // useFindAndModify: false
 });
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '6161d124320e71b358539c95', // вставьте сюда _id созданного в предыдущем пункте пользователя
-  };
+app.post('/signin', validateLogin, login); // вход
 
-  next();
-});
+app.post('/signup', validateCreateUser, createUser); // регистрация
 
-app.use('/users', require('./routes/users'));
+app.use(auth); // авторизация
 
-app.use('/cards', require('./routes/cards'));
+app.use('/users', require('./routes/users')); // все операции с пользователями (получить, удалить, изменить)
 
-app.post('/signin', login);
-
-app.post('/signup', createUser);
+app.use('/cards', require('./routes/cards')); // все операции с карточками
 
 app.use((req, res) => res.status(404).send({ message: 'Ресурс не найден' }));
+
+app.use(errors);
 
 app.listen(PORT, () => {
   // Если всё работает, консоль покажет, какой порт приложение слушает
   /* eslint no-console: "off" */
   console.log(`App listening on port ${PORT}`);
 });
-
