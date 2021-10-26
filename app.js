@@ -11,6 +11,7 @@ const {
 } = require('./middlewares/validations');
 const auth = require('./middlewares/auth');
 const errors = require('./middlewares/errors');
+const NotFoundError = require('./errors/not-found-err');
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -34,7 +35,9 @@ app.use('/users', require('./routes/users')); // все операции с по
 
 app.use('/cards', require('./routes/cards')); // все операции с карточками
 
-app.use((req, res) => res.status(404).send({ message: 'Ресурс не найден' }));
+app.use(() => {
+  throw new NotFoundError('Ресурс не найден');
+});
 
 app.use(errors);
 

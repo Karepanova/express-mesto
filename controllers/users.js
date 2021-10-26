@@ -38,13 +38,15 @@ const createUser = (req, res, next) => {
       email,
       password: hash,
     }))
-    .then((user) => res.send(user)).catch(next);
+    .then((({ _id }) => User.findById(_id)))
+    .then((user) => res.send(user))
+    .catch(next);
 };
 
 // обновление пользователя
 const updateUser = (req, res, next) => {
   const { name, about } = req.body;
-  User.findByIdAndUpdate(req.user._id, { name, about }, { new: true })
+  User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     .orFail(() => {
       throw new NotFoundError('Нет пользователя с таким id');
     })
@@ -55,7 +57,7 @@ const updateUser = (req, res, next) => {
 // обновление аватара
 const updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
-  User.findByIdAndUpdate(req.user._id, { avatar }, { new: true })
+  User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
     .orFail(() => {
       throw new NotFoundError('Нет пользователя с таким id');
     })
